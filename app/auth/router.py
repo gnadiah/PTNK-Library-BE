@@ -4,7 +4,7 @@ from fastapi import APIRouter, Body
 
 from app.auth.request_models import UserCreateRequest
 from app.dependencies import DatabaseDep
-from database.models import User
+from app.database.models import User
 
 router = APIRouter(
     prefix="/auth",
