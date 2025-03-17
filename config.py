@@ -10,7 +10,7 @@ DB_PORT = env.get("DB_PORT")
 DB_NAME = env.get("DB_NAME")
 
 # JWT configurations
-JWT_SECRET_KEY = env.get("PASSWORD_SECRET_KEY")
-JWT_ALGORITHM = env.get("ALGORITHM")
+JWT_SECRET = env.get("JWT_SECRET")
+JWT_ALGORITHM = env.get("JWT_ALGORITHM")
 
 print(DB_USER, DB_PASS, DB_HOST, DB_PORT, DB_NAME)
