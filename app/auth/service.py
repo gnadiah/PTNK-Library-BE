@@ -1,3 +1,5 @@
+from typing import TypedDict
+
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -5,7 +7,13 @@ import config
 from app.auth.dto import UserRegisterRequest, UserLoginRequest
 from app.database.models import User
 from app.users.repository import UserRepository
-from .utils import TokenResponse, create_access_token, create_refresh_token
+from .utils import create_access_token, create_refresh_token, decode_refresh_token
+
+
+class TokenResponse(TypedDict):
+    access_token: str
+    refresh_token: str
+    token_type: str
 
 
 class AuthService:
@@ -29,20 +37,36 @@ class AuthService:
         if not user.verify_password(user_data.password):
             raise HTTPException(status_code=400, detail="Incorrect password")
 
-        access_token = create_access_token({
-            "sub": user.username,
-            "id": user.id,
-            "email": user.email,
-            "is_admin": user.is_admin,
-        })
+        return create_token(user)
 
-        refresh_token = create_refresh_token({
-            "sub": user.username,
-            "id": user.id,
-        })
+    @staticmethod
+    async def refresh_token(db: AsyncSession, refresh_token: str) -> TokenResponse:
+        token_data = decode_refresh_token(refresh_token)
+        if not token_data:
+            raise HTTPException(status_code=400, detail="Invalid token")
 
-        return {
-            "access_token": access_token,
-            "refresh_token": refresh_token,
-            "token_type": config.JWT_TOKEN_TYPE,
-        }
+        user = await UserRepository.get_user_by_id(db, token_data.get("id"))
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        return create_token(user)
+
+
+def create_token(user: User) -> TokenResponse:
+    access_token = create_access_token({
+        "sub": user.username,
+        "id": user.id,
+        "email": user.email,
+        "is_admin": user.is_admin,
+    })
+
+    refresh_token = create_refresh_token({
+        "sub": user.username,
+        "id": user.id,
+    })
+
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": config.JWT_TOKEN_TYPE,
+    }

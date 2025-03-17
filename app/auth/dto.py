@@ -13,7 +13,7 @@ class UserRegisterRequest(BaseModel):
 
 class UserModel(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    
+
     username: str
     email: str
     created_at: datetime
@@ -30,6 +30,16 @@ class UserLoginRequest(BaseModel):
 
 
 class UserLoginResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str
+
+
+class UserRefreshTokenRequest(BaseModel):
+    refresh_token: str
+
+
+class UserRefreshTokenResponse(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str

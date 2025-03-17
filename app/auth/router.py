@@ -2,7 +2,8 @@ from typing import Annotated
 
 from fastapi import APIRouter, Body, HTTPException
 
-from app.auth.dto import UserRegisterRequest, UserLoginResponse, UserLoginRequest, UserModel, UserRegisterResponse
+from app.auth.dto import UserRegisterRequest, UserLoginResponse, UserLoginRequest, UserModel, UserRegisterResponse, \
+    UserRefreshTokenResponse, UserRefreshTokenRequest
 from app.auth.service import AuthService
 from app.dependencies import DatabaseDep
 
@@ -33,11 +34,17 @@ async def login(
         db: DatabaseDep
 ):
     try:
-        data = await AuthService.login(db, user_data)
-        return {
-            "access_token": data.get("access_token"),
-            "refresh_token": data.get("refresh_token"),
-            "token_type": data.get("token_type")
-        }
+        return await AuthService.login(db, user_data)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/refresh-token", response_model=UserRefreshTokenResponse)
+async def refresh_token(
+        data: Annotated[UserRefreshTokenRequest, Body()],
+        db: DatabaseDep
+):
+    try:
+        return await AuthService.refresh_token(db, data.refresh_token)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

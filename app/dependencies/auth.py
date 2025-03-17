@@ -2,7 +2,7 @@ from fastapi import Request, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth.utils import decode_token
+from app.auth.utils import decode_access_token
 from app.dependencies.database import get_db
 from app.users.repository import UserRepository
 
@@ -16,7 +16,7 @@ class TokenBearer(HTTPBearer):
 
         token = creds.credentials
 
-        token_data = decode_token(token)
+        token_data = decode_access_token(token)
 
         if not self.token_valid(token):
             raise HTTPException(status_code=401, detail="Invalid token")
@@ -25,7 +25,7 @@ class TokenBearer(HTTPBearer):
 
     @staticmethod
     def token_valid(token: str) -> bool:
-        token_data = decode_token(token)
+        token_data = decode_access_token(token)
 
         return token_data is not None
 
